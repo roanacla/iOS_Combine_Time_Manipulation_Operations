@@ -2,8 +2,38 @@ import Combine
 import SwiftUI
 import PlaygroundSupport
 
-<# Add your code here #>
+let valuesPerSecond = 1.0
+let delayInSeconds = 1.5
 
+// 1
+let sourcePublisher = PassthroughSubject<Date, Never>()
+
+// 2 will delay values emitted by sourcePublisher and emit them on the main scheduler
+let delayedPublisher = sourcePublisher.delay(for: .seconds(delayInSeconds), scheduler: DispatchQueue.main)
+
+// 3 Starts a timer that deliver one value per second. This type of timer is a combine extension.
+let subscription = Timer
+  .publish(every: 1.0 / valuesPerSecond, on: .main, in: .common)
+  .autoconnect()
+  .subscribe(sourcePublisher)
+
+// 4
+let sourceTimeline = TimelineView(title: "Emitted values (\(valuesPerSecond) per sec.):")
+
+// 5
+let delayedTimeline = TimelineView(title: "Delayed values (with a \(delayInSeconds)s delay):")
+
+// 6
+let view = VStack(spacing: 50) {
+  sourceTimeline
+  delayedTimeline
+}
+// In this last piece of code, you connect the source and delayed publishers to their respective timelines to display events.
+sourcePublisher.displayEvents(in: sourceTimeline)
+delayedPublisher.displayEvents(in: delayedTimeline)
+
+// 7
+PlaygroundPage.current.liveView = UIHostingController(rootView: view)
 //: [Next](@next)
 /*:
  Copyright (c) 2019 Razeware LLC

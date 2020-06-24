@@ -2,8 +2,42 @@ import Combine
 import SwiftUI
 import PlaygroundSupport
 
-<# Add your code here #>
+let throttleDelay = 1.0
 
+// 1 the publisher will emit strings
+let subject = PassthroughSubject<String, Never>()
+
+// 2 Compared with Debounce it will only emit the first value received from subject during each one second interval because you set <lastest> to false.
+let throttled = subject
+  .throttle(for: .seconds(throttleDelay), scheduler: DispatchQueue.main, latest: false)
+  // 3 share() garantees that all subscribers will see the same output at the same time
+  .share()
+
+
+let subjectTimeline = TimelineView(title: "Emitted values")
+let throttledTimeline = TimelineView(title: "Throttled values")
+
+let view = VStack(spacing: 100) {
+  subjectTimeline
+  throttledTimeline
+}
+
+PlaygroundPage.current.liveView = UIHostingController(rootView: view)
+
+subject.displayEvents(in: subjectTimeline)
+throttled.displayEvents(in: throttledTimeline)
+
+let subscription1 = subject
+  .sink { string in
+    print("+\(deltaTime)s: Subject emitted: \(string)")
+  }
+
+let subscription2 = throttled
+  .sink { string in
+    print("+\(deltaTime)s: Throttled emitted: \(string)")
+  }
+
+subject.feed(with: typingHelloWorld)
 //: [Next](@next)
 /*:
  Copyright (c) 2019 Razeware LLC
